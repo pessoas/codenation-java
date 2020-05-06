@@ -2,6 +2,7 @@ package br.com.codenation;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,22 +21,14 @@ public class DesafioMeuTimeApplication implements MeuTimeInterface {
 	private List<Time> times = new ArrayList<>();
 	private List<Jogador> jogadores = new ArrayList<>();
 
-
-	public boolean validateTime(Time time) {
-		if(time.getId() == null || time.getNome().equals(null) || time.getDataCriacao() == null ||
-				time.getCorUniformePrincipal() == null || time.getGetCorUniformeSecundario() == null) {
-			return false;
-		}
-		return true;
-	}
-
 	@Desafio("incluirTime")
 	public void incluirTime(Long id, String nome, LocalDate dataCriacao, String corUniformePrincipal, String corUniformeSecundario) {
-			if(checkTime(id)){
-				throw new IdentificadorUtilizadoException("O id: "+id+", já esta cadastrado como outro time!");
-			} else {
-				this.times.add(new Time(id,nome,dataCriacao,corUniformePrincipal,corUniformeSecundario));
-			}
+
+		if(checkTime(id)){
+			throw new IdentificadorUtilizadoException("O id: "+id+", já esta cadastrado como outro time!");
+		} else {
+			this.times.add(new Time(id,nome,dataCriacao,corUniformePrincipal,corUniformeSecundario));
+		}
 	}
 
 
@@ -63,13 +56,16 @@ public class DesafioMeuTimeApplication implements MeuTimeInterface {
 	@Desafio("buscarCapitaoDoTime")
 	public Long buscarCapitaoDoTime(Long idTime) {
 
-		if(buscarTimePorId(idTime).getIdCapitao() != null) {
-			return buscarTimePorId(idTime).getIdCapitao();
+		if(checkTime(idTime)) {
+			if(buscarTimePorId(idTime).getIdCapitao() != null) {
+				return buscarTimePorId(idTime).getIdCapitao();
+			} else {
+				throw new CapitaoNaoInformadoException("O time não possui capitão definido!");
+			}
 		} else {
-			throw new CapitaoNaoInformadoException("O time não possui capitão definido!");
+			throw new TimeNaoEncontradoException("Time não encontrado.");
 		}
 
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarNomeJogador")
@@ -77,58 +73,68 @@ public class DesafioMeuTimeApplication implements MeuTimeInterface {
 		
 		return buscarJogadorPorId(idJogador).getNome();
 
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarNomeTime")
 	public String buscarNomeTime(Long idTime) {
+
 		return buscarTimePorId(idTime).getNome();
 
-		//throw new UnsupportedOperationException();
 	}
 
+	//ok
 	@Desafio("buscarJogadoresDoTime")
 	public List<Long> buscarJogadoresDoTime(Long idTime) {
-		
+
 		if(buscarTimePorId(idTime) != null) {
 			List<Long> jogadoresTime = new ArrayList<>();
+
 			for (Jogador jogador: jogadores) {
-				if(jogador.getIdTime().equals(idTime)){
+				if(jogador.getIdTime().longValue() == idTime){
 					jogadoresTime.add(jogador.getId());
 				}
 			}
+
+			jogadoresTime.sort(null);
 			return jogadoresTime;
 		}
 		return new ArrayList<>();
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarMelhorJogadorDoTime")
 	public Long buscarMelhorJogadorDoTime(Long idTime) {
+
 		List<Long> idsJogadores = buscarJogadoresDoTime(idTime);
 		List<Jogador> jogadoresTime = new ArrayList<>();
+
 		for(Long id: idsJogadores) {
 			jogadoresTime.add(buscarJogadorPorId(id));
 		}
-		jogadoresTime.sort((i1, i2) -> i1.getId().compareTo(i2.getId()));
-		jogadoresTime.sort((s1, s2) -> s1.getNivelHabilidade().compareTo(s2.getNivelHabilidade()));
-		return jogadoresTime.get(jogadoresTime.size() - 1).getId();
 
-		//throw new UnsupportedOperationException();
+		Comparator<Jogador> c = (h1, h2) -> h2.getNivelHabilidade().compareTo(h1.getNivelHabilidade());
+		c = c.thenComparing(Jogador::getId);
+		jogadoresTime.sort(c);
+
+		return jogadoresTime.get(0).getId();
+
 	}
 
 	@Desafio("buscarJogadorMaisVelho")
 	public Long buscarJogadorMaisVelho(Long idTime) {
+
 		List<Long> idsJogadores = buscarJogadoresDoTime(idTime);
 		List<Jogador> jogadoresTime = new ArrayList<>();
+
 		for(Long id: idsJogadores) {
 			jogadoresTime.add(buscarJogadorPorId(id));
 		}
-		jogadoresTime.sort((i1, i2) -> i1.getId().compareTo(i2.getId()));
-		jogadoresTime.sort((n1, n2) -> n1.getDataNascimento().compareTo(n2.getDataNascimento()));
-		return jogadoresTime.get(jogadoresTime.size() - 1).getId();
 
-		//throw new UnsupportedOperationException();
+		Comparator<Jogador> c = Comparator.comparing(Jogador::getDataNascimento);
+		c = c.thenComparing(Jogador::getId);
+		jogadoresTime.sort(c);
+
+		return jogadoresTime.get(0).getId();
+
 	}
 
 	@Desafio("buscarTimes")
@@ -136,16 +142,17 @@ public class DesafioMeuTimeApplication implements MeuTimeInterface {
 		
 		if(times.size() != 0) {
 			List<Long> listaTimes = new ArrayList<>();
+
 			for(Time time: times) {
 				listaTimes.add(time.getId());
 			}
+
 			listaTimes.sort(null);
 			return listaTimes;
 		} else {
 			return new ArrayList<>();
 		}
 		
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarJogadorMaiorSalario")
@@ -153,57 +160,59 @@ public class DesafioMeuTimeApplication implements MeuTimeInterface {
 		
 		List<Long> idsJogadores = buscarJogadoresDoTime(idTime);
 		List<Jogador> jogadoresTime = new ArrayList<>();
+
 		for(Long id: idsJogadores) {
 			jogadoresTime.add(buscarJogadorPorId(id));
 		}
-		jogadoresTime.sort((i1, i2) -> i1.getId().compareTo(i2.getId()));
-		jogadoresTime.sort((s1, s2) -> s1.getSalario().compareTo(s2.getSalario()));
-		return jogadoresTime.get(jogadoresTime.size() - 1).getId();
+
+		Comparator<Jogador> c = (s1, s2) -> s2.getSalario().compareTo(s1.getSalario());
+		c = c.thenComparing(Jogador::getId);
+		jogadoresTime.sort(c);
+
+		return jogadoresTime.get(0).getId();
 			
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarSalarioDoJogador")
 	public BigDecimal buscarSalarioDoJogador(Long idJogador) {
+
 		return buscarJogadorPorId(idJogador).getSalario();
-		//throw new UnsupportedOperationException();
+
 	}
 
 	@Desafio("buscarTopJogadores")
 	public List<Long> buscarTopJogadores(Integer top) {
-		
-		List<Long> tops = new ArrayList<>();
-		jogadores.sort((i1, i2) -> i1.getId().compareTo(i2.getId()));
-		jogadores.sort((s1, s2) -> s1.getNivelHabilidade().compareTo(s2.getNivelHabilidade()));
 
-		for(Jogador jogador: jogadores) {
-			if (tops.size() <= top) {
-				tops.add(jogador.getId());
-			} else {
-				break;
+		List<Long> tops = new ArrayList<>();
+		
+		if((jogadores.size() > 0) && (top > 0) ){
+			Comparator<Jogador> c = (h1, h2) -> h2.getNivelHabilidade().compareTo(h1.getNivelHabilidade());
+			c = c.thenComparing(Jogador::getId);
+			jogadores.sort(c);
+
+			for(Jogador jogador: jogadores) {
+				if (tops.size() < top) {
+					tops.add(jogador.getId());
+				} else {
+					break;
+				}
 			}
 		}
-		
 		return tops;
-		//throw new UnsupportedOperationException();
 	}
 
 	@Desafio("buscarCorCamisaTimeDeFora")
 	public String buscarCorCamisaTimeDeFora(Long timeDaCasa, Long timeDeFora) {
-		
-		//Time timeCasa;
-		//Time timeFora;
+
 		Time timeCasa = buscarTimePorId(timeDaCasa);
 		Time timeFora = buscarTimePorId(timeDeFora);
 			
 		if(timeCasa.getCorUniformePrincipal().equals(timeFora.getCorUniformePrincipal())) {
-			return timeFora.getGetCorUniformeSecundario();
+			return timeFora.getCorUniformeSecundario();
 		} else {
 			return timeFora.getCorUniformePrincipal();
 		}
 
-		//return null;
-		//throw new UnsupportedOperationException();
 	}
 
 	public Time buscarTimePorId(Long timeId){

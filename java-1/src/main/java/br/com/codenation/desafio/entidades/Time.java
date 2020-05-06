@@ -7,17 +7,20 @@ public class Time{
     private String nome;
     private LocalDate dataCriacao;
     private String corUniformePrincipal;
-    private String getCorUniformeSecundario;
+    private String corUniformeSecundario;
 
     private Long idCapitao;
 
 
-    public Time(Long id, String nome, LocalDate dataCriacao, String corUniformePrincipal, String getCorUniformeSecundario) {
-        this.id = id;
-        this.nome = nome;
-        this.dataCriacao = dataCriacao;
-        this.corUniformePrincipal = corUniformePrincipal;
-        this.getCorUniformeSecundario = getCorUniformeSecundario;
+    public Time(Long id, String nome, LocalDate dataCriacao, String corUniformePrincipal, String corUniformeSecundario) {
+
+        if(validateTime(id, nome, dataCriacao, corUniformePrincipal, corUniformeSecundario)){
+            this.id = id;
+            this.nome = nome;
+            this.dataCriacao = dataCriacao;
+            this.corUniformePrincipal = corUniformePrincipal;
+            this.corUniformeSecundario = corUniformeSecundario;
+        }
     }
 
     public Long getId() {
@@ -60,11 +63,27 @@ public class Time{
         this.corUniformePrincipal = corUniformePrincipal;
     }
 
-    public String getGetCorUniformeSecundario() {
-        return getCorUniformeSecundario;
+    public String getCorUniformeSecundario() {
+        return corUniformeSecundario;
     }
 
-    public void setGetCorUniformeSecundario(String getCorUniformeSecundario) {
-        this.getCorUniformeSecundario = getCorUniformeSecundario;
+    public void setCorUniformeSecundario(String corUniformeSecundario) {
+        this.corUniformeSecundario = corUniformeSecundario;
+    }
+
+    public boolean validateTime(Long id, String nome, LocalDate dataCriacao, String corUniformePrincipal, String getCorUniformeSecundario) {
+        if (id == null ||
+                nome == null ||
+                dataCriacao == null ||
+                corUniformePrincipal == null ||
+                getCorUniformeSecundario == null) {
+            throw new NullPointerException("Argumentos invalidos");
+        } else if (id < 0 ||
+                nome.trim().isEmpty() ||
+                corUniformePrincipal.trim().isEmpty() ||
+                getCorUniformeSecundario.trim().isEmpty()) {
+            throw new IllegalArgumentException("Parametros invalidos");
+        }
+        return true;
     }
 }

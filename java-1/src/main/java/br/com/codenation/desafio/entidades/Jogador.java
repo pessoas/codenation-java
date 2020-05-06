@@ -13,12 +13,15 @@ public class Jogador {
     private BigDecimal salario;
 
     public Jogador(Long id, Long idTime, String nome, LocalDate dataNascimento, Integer nivelHabilidade, BigDecimal salario) {
-        this.id = id;
-        this.idTime = idTime;
-        this.nome = nome;
-        this.dataNascimento = dataNascimento;
-        this.nivelHabilidade = nivelHabilidade;
-        this.salario = salario;
+
+        if(validateJogador(id, idTime, nome, dataNascimento, nivelHabilidade, salario)){
+            this.id = id;
+            this.idTime = idTime;
+            this.nome = nome;
+            this.dataNascimento = dataNascimento;
+            this.nivelHabilidade = nivelHabilidade;
+            this.salario = salario;
+        }
     }
 
     public Long getId() {
@@ -67,5 +70,21 @@ public class Jogador {
 
     public void setSalario(BigDecimal salario) {
         this.salario = salario;
+    }
+
+    public boolean validateJogador(Long id, Long idTime, String nome, LocalDate dataNascimento, Integer nivelHabilidade, BigDecimal salario) {
+        if(id == null ||
+                idTime == null ||
+                nome == null ||
+                dataNascimento == null ||
+                nivelHabilidade == null ||
+                salario == null) {
+            throw new NullPointerException("Argumentos invalidos");
+        } else if (nivelHabilidade < 0 || nivelHabilidade > 100){
+            throw new IllegalArgumentException("Nivel de habilidade incorreto");
+        } else if (id < 0 || nome.trim().isEmpty() || salario.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Id do jogador não pode ser negativo");
+        }
+        return true;
     }
 }
