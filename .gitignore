@@ -80,7 +80,8 @@ nb-configuration.xml
 ##############################
 ## OS X
 ##############################
-.DS_Store# Compiled class file
+.DS_Store
+# Compiled class file
 *.class
 
 # Log file
